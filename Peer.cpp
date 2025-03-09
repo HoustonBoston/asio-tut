@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-constexpr uint16_t port = 6000;
+constexpr uint16_t port = 5000;
 
 using std::cerr;
 using std::cout;
@@ -39,11 +39,11 @@ class Peer {
     }
 
     void do_send(string& msg) {
+        cout << "trying to send\n";
         _buffer = msg;
         _socket.async_send_to(
             boost::asio::buffer(_buffer), _endpoint,
             [](boost::system::error_code ec, size_t sent_bytes) {
-                cout << "trying to send\n";
                 if (!ec && sent_bytes > 0) {
                     cout << sent_bytes << " bytes sent successfully!\n";
                 } else {

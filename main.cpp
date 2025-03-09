@@ -72,19 +72,20 @@ int main(int argc, char* argv[]) {
         cout << "enter msg\n";
         cin >> msg;
         boost::asio::post(thread_pool, [&] {
+            cout << "trying to send in main\n";
             peer.do_send(msg);
             io_context.run();
         });
-        
-        cout << "going to receive\n";
 
         boost::asio::post(thread_pool, [&] {
+            cout << "trying to receive in main\n";
             peer.do_receive();
             io_context.run();
         });
 
-        cout << "joining threads\n";
         thread_pool.join();
+        cout << "joined threads\n";
+        continue;
     }
 
     return 0;
