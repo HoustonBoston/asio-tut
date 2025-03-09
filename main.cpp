@@ -69,11 +69,9 @@ int main(int argc, char* argv[]) {
     string msg;
 
     while (true) {
-        cout << "enter msg\n";
-        cin >> msg;
         boost::asio::post(thread_pool, [&] {
             cout << "trying to send in main\n";
-            peer.do_send(msg);
+            peer.do_send();
             io_context.run();
         });
 
