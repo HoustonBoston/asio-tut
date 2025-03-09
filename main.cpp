@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     boost::asio::thread_pool thread_pool(2);
     boost::asio::io_context io_context;
     boost::asio::ip::address game(
-        boost::asio::ip::make_address(argv[2] ? argv[2] : "127.0.0.1"));
+        boost::asio::ip::make_address(argv[1] ? argv[1] : "127.0.0.1"));
     Peer peer(io_context, game);
 
     string msg;
