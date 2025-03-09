@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-#include "Peer.cpp"
+#include "Peer.hpp"
 
 using std::cerr;
 using std::cin;
@@ -11,53 +11,54 @@ using std::cout;
 using std::endl;
 using std::string;
 
-const boost::asio::ip::udp::endpoint SERVER_ENDPOINT(
-    boost::asio::ip::address::from_string("127.0.0.1"), 5000);
+// const boost::asio::ip::udp::endpoint SERVER_ENDPOINT(
+//     boost::asio::ip::address::from_string("127.0.0.1"), 5000);
 
-void Server() {
-    using namespace boost::asio;
+// void Server() {
+//     using namespace boost::asio;
 
-    io_context ctx;
+//     io_context ctx;
 
-    ip::udp::socket serverSocket(ctx, SERVER_ENDPOINT);
+//     ip::udp::socket serverSocket(ctx, SERVER_ENDPOINT);
 
-    char data[1024];
-    serverSocket.async_receive(
-        boost::asio::buffer(data, 1024),
-        [&](std::error_code ec, size_t bytes_received) {
-            if (!ec && bytes_received > 0) {
-                cout << "RCV: " << std::string_view(data, bytes_received)
-                     << endl;
+//     char data[1024];
+//     serverSocket.async_receive(
+//         boost::asio::buffer(data, 1024),
+//         [&](std::error_code ec, size_t bytes_received) {
+//             if (!ec && bytes_received > 0) {
+//                 cout << "RCV: " << std::string_view(data, bytes_received)
+//                      << endl;
 
-            } else {
-                cout << "ERROR, BYTES: " << bytes_received << ec.message()
-                     << endl;
-            }
-        });
+//             } else {
+//                 cout << "ERROR, BYTES: " << bytes_received << ec.message()
+//                      << endl;
+//             }
+//         });
 
-    ctx.run();
-}
+//     ctx.run();
+// }
 
-void Client() {
-    using namespace boost::asio;
+// void Client() {
+//     using namespace boost::asio;
 
-    io_context ctx;
+//     io_context ctx;
 
-    ip::udp::socket clientSocket(ctx, ip::udp::endpoint(ip::udp::v4(), 0));
+//     ip::udp::socket clientSocket(ctx, ip::udp::endpoint(ip::udp::v4(), 0));
 
-    string message("I love Daly\n");
-    clientSocket.async_send_to(
-        boost::asio::buffer(message.data(), message.size()), SERVER_ENDPOINT,
-        [](std::error_code ec, size_t sent_bytes) {
-            if (!ec && sent_bytes > 0) {
-                cout << sent_bytes << " bytes sent successfully!\n";
-            } else {
-                cout << "ERROR, BYTES: " << sent_bytes << ec.message() << endl;
-            }
-        });
+//     string message("I love Daly\n");
+//     clientSocket.async_send_to(
+//         boost::asio::buffer(message.data(), message.size()), SERVER_ENDPOINT,
+//         [](std::error_code ec, size_t sent_bytes) {
+//             if (!ec && sent_bytes > 0) {
+//                 cout << sent_bytes << " bytes sent successfully!\n";
+//             } else {
+//                 cout << "ERROR, BYTES: " << sent_bytes << ec.message() <<
+//                 endl;
+//             }
+//         });
 
-    ctx.run();
-}
+//     ctx.run();
+// }
 
 int main(int argc, char* argv[]) {
     boost::asio::thread_pool thread_pool(2);
@@ -66,25 +67,19 @@ int main(int argc, char* argv[]) {
         boost::asio::ip::make_address(argv[1] ? argv[1] : "127.0.0.1"));
     Peer peer(io_context, game);
 
-    string msg;
+    boost::asio::post(thread_pool, [&] {
+        peer.do_receive();
+        io_context.run();
+    });
 
-    while (true) {
-        boost::asio::post(thread_pool, [&] {
-            cout << "trying to send in main\n";
-            peer.do_send();
-            io_context.run();
-        });
+    boost::asio::post(thread_pool, [&] {
+        peer.do_send();
+        io_context.run();
+    });
 
-        boost::asio::post(thread_pool, [&] {
-            cout << "trying to receive in main\n";
-            peer.do_receive();
-            io_context.run();
-        });
+    thread_pool.join();
 
-        thread_pool.join();
-        cout << "joined threads\n";
-        continue;
-    }
+    cout << "joined threads\n";
 
     return 0;
 }
