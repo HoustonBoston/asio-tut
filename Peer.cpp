@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-constexpr uint16_t port = 5000;
+constexpr uint16_t port = 6000;
 
 using std::cerr;
 using std::cout;

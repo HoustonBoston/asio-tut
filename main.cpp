@@ -60,50 +60,32 @@ void Client() {
 }
 
 int main(int argc, char* argv[]) {
-    // boost::asio::thread_pool thread_pool(2);
+    boost::asio::thread_pool thread_pool(2);
     boost::asio::io_context io_context;
     boost::asio::ip::address game(
         boost::asio::ip::make_address(argv[2] ? argv[2] : "127.0.0.1"));
     Peer peer(io_context, game);
 
     string msg;
-    if (string(argv[1]) == "Server") {
-        while (true) {
-            // cout << "enter msg\n";
-            // cin >> msg;
-            //     peer.do_send(msg);
-            //     io_context.run();
-            
-            cout << "port being used: " << peer.endpoint().port() << endl;
 
-            cout << "going to receive\n";
-
-            peer.do_receive();
-            io_context.run();
-
-            // cout << "joining threads\n";
-            // thread_pool.join();
-        }
-    }
-
-    if (string(argv[1]) == "Client") {
-        while (true) {
-            cout << "enter msg\n";
-            cin >> msg;
-
+    while (true) {
+        cout << "enter msg\n";
+        cin >> msg;
+        boost::asio::post(thread_pool, [&] {
             peer.do_send(msg);
             io_context.run();
+        });
+        
+        cout << "going to receive\n";
 
-            cout << "port being used: " << peer.endpoint().port() << endl;
+        boost::asio::post(thread_pool, [&] {
+            peer.do_receive();
+            io_context.run();
+        });
 
-            // boost::asio::post(thread_pool, [&] {
-            //     peer.do_send(msg);
-            //     io_context.run();
-            // });
-        }
+        cout << "joining threads\n";
+        thread_pool.join();
     }
-
-    cout << "Usage: ./main [Client | Server]\n";
 
     return 0;
 }
