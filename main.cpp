@@ -4,6 +4,8 @@
 #include <string_view>
 
 #include "Peer.hpp"
+#include "Server.hpp"
+#include "Client.hpp"
 
 using std::cerr;
 using std::cin;
@@ -11,8 +13,8 @@ using std::cout;
 using std::endl;
 using std::string;
 
-// const boost::asio::ip::udp::endpoint SERVER_ENDPOINT(
-//     boost::asio::ip::address::from_string("127.0.0.1"), 5000);
+const boost::asio::ip::udp::endpoint SERVER_ENDPOINT(
+    boost::asio::ip::address::from_string("127.0.0.1"), 5000);
 
 // void Server() {
 //     using namespace boost::asio;
@@ -61,25 +63,37 @@ using std::string;
 // }
 
 int main(int argc, char* argv[]) {
-    boost::asio::thread_pool thread_pool(2);
-    boost::asio::io_context io_context;
-    boost::asio::ip::address game(
-        boost::asio::ip::make_address(argv[1] ? argv[1] : "127.0.0.1"));
-    Peer peer(io_context, game);
-
-    boost::asio::post(thread_pool, [&] {
-        peer.do_receive();
-        io_context.run();
-    });
-
-    boost::asio::post(thread_pool, [&] {
-        peer.do_send();
-        io_context.run();
-    });
-
-    thread_pool.join();
-
-    cout << "joined threads\n";
+    if (argv[1] == "S"){
+        Server s;
+        while (true){
+            s.serve();
+        }
+    }
+    else if (argv[1] == "C"){
+        // while window is open stuff happens
+        Client c;
+        c.send_msg();
+    }
 
     return 0;
+
+    // boost::asio::thread_pool thread_pool(2);
+    // boost::asio::io_context io_context;
+    // boost::asio::ip::address game(
+    //     boost::asio::ip::make_address(argv[1] ? argv[1] : "127.0.0.1"));
+    // Peer peer(io_context, game);
+
+    // boost::asio::post(thread_pool, [&] {
+    //     peer.do_receive();
+    //     io_context.run();
+    // });
+
+    // boost::asio::post(thread_pool, [&] {
+    //     peer.do_send();
+    //     io_context.run();
+    // });
+
+    // thread_pool.join();
+
+    // cout << "joined threads\n";
 }

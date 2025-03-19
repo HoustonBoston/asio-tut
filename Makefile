@@ -1,4 +1,4 @@
-main: Peer.cpp main.cpp
+main: Client.cpp Server.cpp main.cpp
 	g++ -g -Wall $^ -o $@
 
 clean:
